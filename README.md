@@ -3,7 +3,7 @@
 ## Download zip file from github or dropbox
 [Github Link](https://github.com/oguz3027/OpenPayd) => Select "Code" and "Download ZIP"
 
-[Dropbox Link]()
+[Dropbox Link](https://drive.google.com/drive/u/1/folders/1K-hBKMyww5BT8aP6A2DiEmTERspu4BNp) => Right click and download the zip file
 
 ## Extract the file from zip file
 Go downloads and extract file
