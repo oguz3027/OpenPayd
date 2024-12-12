@@ -5,7 +5,6 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.Assert;
 import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -19,8 +18,6 @@ public class Step_Definition {
     WebDriver driver = Driver.getChromeDriver();
     BasePage basePage = new BasePage(driver);
     WebDriverWait wait = new WebDriverWait(driver, 20);
-    Actions action = new Actions(driver);
-    JavascriptExecutor js = (JavascriptExecutor) driver;
 
     static List<WebElement> products_in_stock = new ArrayList<>();
     static List<String> products_in_stock_name = new ArrayList<>();
@@ -42,6 +39,7 @@ public class Step_Definition {
 
     @When("Search by word {string}")
     public void search_by_word(String string) {
+        wait.until(ExpectedConditions.visibilityOf(basePage.deliverLocation));
         //Selected "UK" as delivery address
         basePage.deliverLocation.click();
         Assert.assertTrue(basePage.chooseYourLocationPopup.isDisplayed());

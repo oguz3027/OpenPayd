@@ -10,7 +10,6 @@ import pages.BasePage;
 import utilities.BrowserUtils;
 import utilities.ConfigurationReader;
 import utilities.Driver;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.net.HttpURLConnection;
