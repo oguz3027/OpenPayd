@@ -1,20 +1,31 @@
-#OpenPayd Task
+# OpenPayd Task
 
-##Navigate to Your Project Directory:
-cd path/to/your/project
+## Download zip file from github or dropbox
+[Github Link](https://github.com/oguz3027/OpenPayd) => Select "Code" and "Download ZIP"
+
+[Dropbox Link]()
+
+## Extract the file from zip file
+Go downloads and extract file
 
 
-##Compile Your Java Files:
-mvn clean compile
+## Navigate to Your Project Directory:
+For Windows:
 
+`cd path/to/your/project`
 
-##Run the tests one by one
+## Compile Your Java Files:
+`mvn clean compile`
 
-###For search scenario:
-mvn test -Dtest=runners.CukesRunner
+## Run the tests one by one
 
-###For blog posts api test:
-mvn test -Dtest=apiTest.BlogPostsApiTest
+### For search scenario:
+`mvn test -Dtest=CukesRunner`
 
-###For department crawler test:
-mvn test -Dtest=crawlerTest.AmazonDepartmentCrawler
+For making chrome browser headless(false), go Driver.java file and make line 31 comment line or change setHeadless(true) as setHeadless(false)
+
+### For blog posts api test:
+`mvn test -Dtest=BlogPostsApiTest`
+
+### For department crawler test:
+`mvn test -Dtest=AmazonDepartmentCrawler`
