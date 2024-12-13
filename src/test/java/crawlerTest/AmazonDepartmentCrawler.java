@@ -1,5 +1,6 @@
 package crawlerTest;
 
+import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -10,14 +11,16 @@ import pages.BasePage;
 import utilities.BrowserUtils;
 import utilities.ConfigurationReader;
 import utilities.Driver;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+
+import static io.restassured.RestAssured.*;
+
 
 public class AmazonDepartmentCrawler {
 
@@ -57,7 +60,7 @@ public class AmazonDepartmentCrawler {
                         System.out.println("linkText = " + linkText);
 
                         if (url != null && !url.isEmpty()) {
-                            List<String> titleAndStatus = checkLinkStatus(driver, url);
+                            List<String> titleAndStatus = checkLinkStatus(driver, url, extractParameters(url));
                             String status = titleAndStatus.get(1);
                             System.out.println("status = " + status);
                             String title = titleAndStatus.get(0);
@@ -90,39 +93,70 @@ public class AmazonDepartmentCrawler {
         }
     }
 
-    private static List<String> checkLinkStatus(WebDriver driver, String url) {
+    public static class ExtractedParams {
+        String baseUrl;
+        Map<String, String> queryParams;
+
+        public ExtractedParams(String baseUrl, Map<String, String> queryParams) {
+            this.baseUrl = baseUrl;
+            this.queryParams = queryParams;
+        }
+    }
+
+    public static ExtractedParams extractParameters(String fullUrl) {
+        try {
+            String[] parts = fullUrl.split("\\?");
+            String baseUrl = parts[0];
+
+            Map<String, String> queryParams = new LinkedHashMap<>();
+            if (parts.length > 1) {
+                String queryString = parts[1];
+                for (String param : queryString.split("&")) {
+                    String[] keyValue = param.split("=", 2);
+                    String key = keyValue[0];
+                    String value = keyValue.length > 1 ? keyValue[1] : "";
+                    queryParams.put(key, value);
+                }
+            }
+
+            return new ExtractedParams(baseUrl, queryParams);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ExtractedParams(fullUrl, Collections.emptyMap());
+        }
+    }
+
+
+    private static List<String> checkLinkStatus(WebDriver driver, String url, ExtractedParams extractedParams) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         List<String> checkLink = new ArrayList<>();
         String status = "Dead link";
         String pageTitle = null;
-        try {
-            js.executeScript("window.open(arguments[0], '_blank');", url);
 
-            List<String> tabs = new ArrayList<>(driver.getWindowHandles());
-            driver.switchTo().window(tabs.get(tabs.size() - 1));
+        js.executeScript("window.open(arguments[0], '_blank');", url);
+        pageTitle = driver.getTitle();
+        List<String> tabs = new ArrayList<>(driver.getWindowHandles());
+        driver.switchTo().window(tabs.get(tabs.size() - 1));
 
-            URL link = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) link.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36");
-            connection.connect();
-            int responseCode = connection.getResponseCode();
-            System.out.println("responseCode = " + responseCode);
-            pageTitle = driver.getTitle();
-            connection.disconnect();
 
-            if (responseCode == 200) {
-                status = "OK";
-            } else {
-                status = "Dead link";
-            }
-            driver.close();
-            driver.switchTo().window(tabs.get(0));
-        } catch (Exception e) {
+
+        Response response = given()
+                .headers("User-Agent", "PostmanRuntime/7.43.0")
+                .queryParams(extractedParams.queryParams)
+                .when()
+                .get(extractedParams.baseUrl);
+
+        int responseCode = response.statusCode();
+
+        if (responseCode == 200) {
+            status = "OK";
+        } else {
             status = "Dead link";
-            pageTitle = "Error fetching title";
         }
+
+        driver.close();
+        driver.switchTo().window(tabs.get(0));
+
         checkLink.add(pageTitle);
         checkLink.add(status);
         return checkLink;
