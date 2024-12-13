@@ -11,16 +11,11 @@ import pages.BasePage;
 import utilities.BrowserUtils;
 import utilities.ConfigurationReader;
 import utilities.Driver;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static io.restassured.RestAssured.*;
-
 
 public class AmazonDepartmentCrawler {
 
@@ -130,23 +125,32 @@ public class AmazonDepartmentCrawler {
     private static List<String> checkLinkStatus(WebDriver driver, String url, ExtractedParams extractedParams) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         List<String> checkLink = new ArrayList<>();
-        String status = "Dead link";
-        String pageTitle = null;
+        String status;
+        String pageTitle;
 
         js.executeScript("window.open(arguments[0], '_blank');", url);
         pageTitle = driver.getTitle();
         List<String> tabs = new ArrayList<>(driver.getWindowHandles());
         driver.switchTo().window(tabs.get(tabs.size() - 1));
 
-
+        Set<org.openqa.selenium.Cookie> seleniumCookies = driver.manage().getCookies();
+        Map<String, String> cookies = new HashMap<>();
+        for (org.openqa.selenium.Cookie cookie : seleniumCookies) {
+            cookies.put(cookie.getName(), cookie.getValue());
+        }
 
         Response response = given()
-                .headers("User-Agent", "PostmanRuntime/7.43.0")
+                .cookies(cookies)
+                .headers("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
+                        "Accept-Language", "en-US,en;q=0.9",
+                        "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
                 .queryParams(extractedParams.queryParams)
                 .when()
                 .get(extractedParams.baseUrl);
 
         int responseCode = response.statusCode();
+
+        System.out.println("responseCode = " + responseCode);
 
         if (responseCode == 200) {
             status = "OK";
